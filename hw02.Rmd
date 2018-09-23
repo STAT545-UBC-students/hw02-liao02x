@@ -1,0 +1,123 @@
+---
+title: "Homework 02: Explore Gapminder and use dplyr"
+output: github_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setting ups
+
+Before doing anything exciting with `gapminder` and `dplyr`, first we should get the packages installed and loaded.
+
+```{r results = 'hide'}
+install.packages("gapminder")
+install.packages("tidyverse")
+library(gapminder)
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+## Smell test the data
+
+- Is it a data.frame, a matrix, a vector, a list?
+```{r}
+typeof(gapminder)
+```
+It is a data.frame, but when using `typeof`, the output is always base R type.
+
+- What is its class?
+```{r}
+class(gapminder)
+```
+As mentioned above, the class of `gapminder` is data.frame.
+
+- How many variables/columns?
+```{r}
+ncol(gapminder)
+```
+
+- How many rows/observations?
+```{r}
+nrow(gapminder)
+```
+
+- Can you get these facts about “extent” or “size” in more than one way? Can you imagine different functions being useful in different contexts?
+```{r}
+dim(gapminder)
+str(gapminder)
+```
+
+- What data type is each variable?
+```{r}
+head(gapminder)
+```
+We can find the data types in the row below the variable names.
+
+## Explore individual variables
+
+- What are possible values (or range, whichever is appropriate) of each variable?
+```{r}
+summary(gapminder $ continent)
+summary(gapminder $ pop)
+```
+
+- What values are typical? What’s the spread? What’s the distribution? Etc., tailored to the variable at hand.
+
+`summary` function can show us many things mentioned above, or we can check the distribution of the data by bar plot.
+```{r}
+gapminder %>% 
+  ggplot(aes(x = pop)) + geom_histogram(bins = 100) + scale_x_log10()
+```
+
+## Explore various plot types
+
+- A scatterplot of two quantitative variables.
+```{r}
+gapminder %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp, color = continent, size = year)) + geom_point(alpha = 0.5) + scale_x_log10()
+```
+
+- A plot of one quantitative variable. Maybe a histogram or densityplot or frequency polygon.
+```{r}
+gapminder %>% 
+  ggplot(aes(x = lifeExp)) + geom_density()
+```
+
+- A plot of one quantitative variable and one categorical. Maybe boxplots for several continents or countries.
+```{r}
+gapminder %>% 
+  ggplot(aes(x = continent, y = lifeExp, color = year, size = pop)) + geom_violin() + geom_jitter()
+```
+
+## Use `filter()`, `select()` and `%>%`
+
+With `filter` function we can create a data subset and do some exploration.
+```{r}
+gapminder %>% 
+  filter(continent == "Americas" & pop > 1e7) %>% 
+  ggplot(aes(x = year, y = lifeExp, color = country)) + geom_point(aes(size = pop), alpha=0.6) + geom_line()
+```
+
+## But I want to do more!
+
+- The correct form of boolean expression
+```{r}
+filter(gapminder, country == c("Rwanda", "Afghanistan"))
+```
+The right way is using `%in%` expression here.
+```{r}
+filter(gapminder, country %in% c("Rwanda", "Afghanistan"))
+```
+
+- Use `knitr::kable` to present numerical tables in a more attractive form.
+```{r}
+knitr::kable(filter(gapminder, continent %in% c("Asia", "Americas") & year == 2002 & pop > 3e7))
+```
+
+- More explorations about `dplyr`
+```{r, results='hide'}
+gapminder %>% 
+  filter(continent == "Americas" & pop > 2e7) %>% 
+  ggplot(aes(x = year, y = gdpPercap)) + geom_point(aes(color = country, size = lifeExp), alpha = 0.6) + geom_smooth()
+```
